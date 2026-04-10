@@ -37,29 +37,29 @@ A production-ready microservices backend built with **Spring Boot 3** and **Java
 
 ## Services
 
-| Service | Port | Description |
-|---|---|---|
-| **Service Registry** | 8761 | Eureka server — service discovery for all microservices |
-| **API Gateway** | 8080 | Single entry point — routes and validates JWT tokens |
-| **User Service** | 8081 | Handles user registration, login, and profile management |
-| **Transaction Service** | 8082 | Handles financial transactions (CREDIT/DEBIT) |
+| Service                 | Port | Description                                              |
+| ----------------------- | ---- | -------------------------------------------------------- |
+| **Service Registry**    | 8761 | Eureka server — service discovery for all microservices  |
+| **API Gateway**         | 8080 | Single entry point — routes and validates JWT tokens     |
+| **User Service**        | 8081 | Handles user registration, login, and profile management |
+| **Transaction Service** | 8082 | Handles financial transactions (CREDIT/DEBIT)            |
 
 ---
 
 ## Tech Stack
 
-| Category | Technology |
-|---|---|
-| Language | Java 21 |
-| Framework | Spring Boot 3.2.4 |
-| Service Discovery | Spring Cloud Netflix Eureka |
-| API Gateway | Spring Cloud Gateway |
-| Security | Spring Security + JWT (JJWT) |
-| Database | MySQL 8.0 (per service) |
-| ORM | Spring Data JPA / Hibernate |
-| Containerization | Docker + Docker Compose |
-| Testing | JUnit 5, Mockito, AssertJ |
-| Build Tool | Maven |
+| Category          | Technology                   |
+| ----------------- | ---------------------------- |
+| Language          | Java 21                      |
+| Framework         | Spring Boot 3.2.4            |
+| Service Discovery | Spring Cloud Netflix Eureka  |
+| API Gateway       | Spring Cloud Gateway         |
+| Security          | Spring Security + JWT (JJWT) |
+| Database          | MySQL 8.0 (per service)      |
+| ORM               | Spring Data JPA / Hibernate  |
+| Containerization  | Docker + Docker Compose      |
+| Testing           | JUnit 5, Mockito, AssertJ    |
+| Build Tool        | Maven                        |
 
 ---
 
@@ -89,17 +89,20 @@ A production-ready microservices backend built with **Spring Boot 3** and **Java
 ### Run with Docker (Recommended)
 
 **1. Clone the repository**
+
 ```bash
 git clone https://github.com/tejasbhosale17/microservices-backend.git
 cd microservices-backend
 ```
 
 **2. Build the JAR files**
+
 ```bash
 mvn clean package -DskipTests
 ```
 
 **3. Start the full stack**
+
 ```bash
 docker compose up --build
 ```
@@ -111,9 +114,11 @@ This starts 6 containers: 2 MySQL databases + 4 Spring Boot services, in the cor
 Open http://localhost:8761 in your browser — you should see the Eureka dashboard with all services registered as **UP**.
 
 **5. Stop the stack**
+
 ```bash
 docker compose down
 ```
+
 Add `-v` to also delete database data: `docker compose down -v`
 
 ---
@@ -124,35 +129,36 @@ All requests go through the **API Gateway at `http://localhost:8080`**.
 
 ### Auth (no token required)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Register a new user |
-| `POST` | `/api/auth/login` | Login and get JWT token |
+| Method | Endpoint             | Description             |
+| ------ | -------------------- | ----------------------- |
+| `POST` | `/api/auth/register` | Register a new user     |
+| `POST` | `/api/auth/login`    | Login and get JWT token |
 
 ### Users (token required)
 
-| Method | Endpoint | Role | Description |
-|---|---|---|---|
-| `GET` | `/api/users/{id}` | Any | Get user by ID |
-| `GET` | `/api/users` | ADMIN | Get all users |
-| `PUT` | `/api/users/{id}` | Any | Update user profile |
-| `DELETE` | `/api/users/{id}` | ADMIN | Delete a user |
+| Method   | Endpoint          | Role  | Description         |
+| -------- | ----------------- | ----- | ------------------- |
+| `GET`    | `/api/users/{id}` | Any   | Get user by ID      |
+| `GET`    | `/api/users`      | ADMIN | Get all users       |
+| `PUT`    | `/api/users/{id}` | Any   | Update user profile |
+| `DELETE` | `/api/users/{id}` | ADMIN | Delete a user       |
 
 ### Transactions (token required)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/transactions` | Create a transaction |
-| `GET` | `/api/transactions` | Get all transactions |
-| `GET` | `/api/transactions/{id}` | Get transaction by ID |
-| `GET` | `/api/transactions/user/{userId}` | Get transactions by user |
-| `PUT` | `/api/transactions/{id}/status` | Update transaction status |
+| Method | Endpoint                          | Description               |
+| ------ | --------------------------------- | ------------------------- |
+| `POST` | `/api/transactions`               | Create a transaction      |
+| `GET`  | `/api/transactions`               | Get all transactions      |
+| `GET`  | `/api/transactions/{id}`          | Get transaction by ID     |
+| `GET`  | `/api/transactions/user/{userId}` | Get transactions by user  |
+| `PUT`  | `/api/transactions/{id}/status`   | Update transaction status |
 
 ---
 
 ## Example Usage
 
 **Register a user**
+
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
@@ -160,14 +166,17 @@ curl -X POST http://localhost:8080/api/auth/register \
 ```
 
 **Login**
+
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "tejas@example.com", "password": "password123"}'
 ```
+
 Copy the `token` from the response.
 
 **Create a transaction**
+
 ```bash
 curl -X POST http://localhost:8080/api/transactions \
   -H "Authorization: Bearer <your_token>" \
@@ -187,6 +196,7 @@ A ready-to-use Postman collection is included: `Microservices-Backend.postman_co
 **Import it:** Open Postman → Import → select the file.
 
 The collection:
+
 - Auto-saves the JWT token after login (no manual copy-paste)
 - Auto-saves the transaction ID after creation
 - Covers all 11 endpoints with example request bodies
@@ -203,6 +213,7 @@ mvn test
 Tests use an **H2 in-memory database** — no MySQL needed to run tests.
 
 **Generate coverage report:**
+
 ```bash
 mvn clean test
 # Report generated at: user-service/target/site/jacoco/index.html
