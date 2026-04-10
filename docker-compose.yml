@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # ─── Databases ───────────────────────────────────────────
+  user-db:
+    image: mysql:8.0
+    container_name: user-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: userdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - user-db-data:/var/lib/mysql
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transaction-db:
+    image: mysql:8.0
+    container_name: transaction-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: transactiondb
+    ports:
+      - "3307:3306"
+    volumes:
+      - transaction-db-data:/var/lib/mysql
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Service Registry ───────────────────────────────────
+  service-registry:
+    build: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── API Gateway ─────────────────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  # ─── User Service ────────────────────────────────────────
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://user-db:3306/userdb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    depends_on:
+      user-db:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  # ─── Transaction Service ─────────────────────────────────
+  transaction-service:
+    build: ./transaction-service
+    container_name: transaction-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://transaction-db:3306/transactiondb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry:8761/eureka/
+    depends_on:
+      transaction-db:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+volumes:
+  user-db-data:
+  transaction-db-data:
+
+networks:
+  microservices-net:
+    driver: bridge
